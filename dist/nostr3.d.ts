@@ -1,4 +1,3 @@
-/// <reference types="node" />
 export declare class Nostr3 {
     private privateKey;
     constructor(privateKey: any);
@@ -9,6 +8,6 @@ export declare class Nostr3 {
         nsec: `nsec1${string}`;
         nprofile: `nprofile1${string}`;
     };
-    encrypt: (data: string) => Promise<Buffer>;
-    decrypt: (data: Uint8Array) => Promise<any>;
+    encrypt: (data: string) => Promise<any[]>;
+    decrypt: (encrypted: string, nonce: string) => Promise<any>;
 }

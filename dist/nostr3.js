@@ -10,17 +10,21 @@ class Nostr3 {
     constructor(privateKey) {
         this.encrypt = async (data) => {
             const nonce = await crypto_ipfs_1.default.crypto.asymmetric.generateNonce();
-            const encrypted = Buffer.concat([
-                Buffer.from(nonce),
-                Buffer.from(crypto_ipfs_1.default.crypto.asymmetric.secretBox.encryptMessage(Buffer.from(data), nonce, Buffer.from(this.privateKey).slice(0, 32))),
-            ]);
-            return encrypted;
+            /* const encrypted = Buffer.concat([
+              Buffer.from(nonce),
+              Buffer.from(
+                MecenateHelper.crypto.asymmetric.secretBox.encryptMessage(
+                  Buffer.from(data),
+                  nonce,
+                  Buffer.from(this.privateKey).slice(0, 32),
+                ),
+              ),
+            ]); */
+            const encrypted = crypto_ipfs_1.default.crypto.asymmetric.secretBox.encryptMessage(Buffer.from(data), nonce, Buffer.from(this.privateKey).slice(0, 32));
+            return [encrypted, nonce];
         };
-        this.decrypt = async (data) => {
-            const contentBuffer = Buffer.from(data, "hex");
-            const nonce = contentBuffer.slice(0, 24);
-            const ciphertext = contentBuffer.slice(24);
-            const decrypted = await crypto_ipfs_1.default.crypto.asymmetric.secretBox.decryptMessage(new Uint8Array(ciphertext), new Uint8Array(nonce), Buffer.from(this.privateKey).slice(0, 32));
+        this.decrypt = async (encrypted, nonce) => {
+            const decrypted = await crypto_ipfs_1.default.crypto.asymmetric.secretBox.decryptMessage(encrypted, nonce, Buffer.from(this.privateKey).slice(0, 32));
             return decrypted;
         };
         this.privateKey = privateKey;
