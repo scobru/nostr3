@@ -1,6 +1,6 @@
 {
   "name": "@scobru/nostr3",
-  "version": "1.0.6",
+  "version": "1.0.8",
   "description": "Link your Notr account to your wallet evm",
   "main": "dist/index.js",
   "types": "dist/index.d.js",
@@ -31,6 +31,7 @@
   },
   "homepage": "https://github.com/scobru/nostr-pair-link#readme",
   "dependencies": {
+    "@noble/secp256k1": "^2.0.0",
     "@scobru/crypto-ipfs": "^1.1.8",
     "@scobru/mogu": "^1.2.5",
     "@types/node": "^20.8.10",

@@ -10,4 +10,6 @@ export declare class Nostr3 {
     };
     encrypt: (data: string) => Promise<any[]>;
     decrypt: (encrypted: string, nonce: string) => Promise<any>;
+    encryptDM: (data: string, publicKey: string) => Promise<string>;
+    decryptDM: (encrypted: string, publicKey: string) => Promise<string>;
 }
