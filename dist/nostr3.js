@@ -35,7 +35,6 @@ class Nostr3 {
         const nsec = nostr_tools_1.nip19.nsecEncode(this.privateKey);
         const npub = nostr_tools_1.nip19.npubEncode(publicKey);
         const nprofile = nostr_tools_1.nip19.nprofileEncode({ pubkey: publicKey });
-        //
         return { pub: publicKey, sec: this.privateKey, npub: npub, nsec: nsec, nprofile: nprofile };
     }
 }

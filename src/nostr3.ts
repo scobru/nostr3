@@ -15,8 +15,7 @@ export class Nostr3 {
     const nsec = nip19.nsecEncode(this.privateKey);
     const npub = nip19.npubEncode(publicKey);
     const nprofile = nip19.nprofileEncode({ pubkey: publicKey });
-    const wallet = new Wallet(this.privateKey);
-    return { pub: publicKey, sec: this.privateKey, npub: npub, nsec: nsec, nprofile: nprofile, wallet: wallet };
+    return { pub: publicKey, sec: this.privateKey, npub: npub, nsec: nsec, nprofile: nprofile };
   }
 
   encrypt = async (data: string) => {

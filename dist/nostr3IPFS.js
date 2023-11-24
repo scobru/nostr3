@@ -7,8 +7,29 @@ exports.Nostr3IPFS = void 0;
 const mogu_1 = require("@scobru/mogu");
 const nostr_tools_1 = require("nostr-tools");
 const fs_extra_1 = __importDefault(require("fs-extra"));
+const ethers_1 = require("ethers");
+const crypto_ipfs_1 = __importDefault(require("@scobru/crypto-ipfs"));
 class Nostr3IPFS {
     constructor(privateKey, pinataApiKey, pinataApiSecret, dbName, cidFilePath) {
+        this.encrypt = async (data) => {
+            const nonce = await crypto_ipfs_1.default.crypto.asymmetric.generateNonce();
+            /* const encrypted = Buffer.concat([
+              Buffer.from(nonce),
+              Buffer.from(
+                MecenateHelper.crypto.asymmetric.secretBox.encryptMessage(
+                  Buffer.from(data),
+                  nonce,
+                  Buffer.from(this.privateKey).slice(0, 32),
+                ),
+              ),
+            ]); */
+            const encrypted = crypto_ipfs_1.default.crypto.asymmetric.secretBox.encryptMessage(Buffer.from(data), nonce, Buffer.from(this.privateKey).slice(0, 32));
+            return [encrypted, nonce];
+        };
+        this.decrypt = async (encrypted, nonce) => {
+            const decrypted = await crypto_ipfs_1.default.crypto.asymmetric.secretBox.decryptMessage(encrypted, nonce, Buffer.from(this.privateKey).slice(0, 32));
+            return decrypted;
+        };
         this.mogu = new mogu_1.Mogu(privateKey, pinataApiKey, pinataApiSecret, dbName);
         this.cidFile = cidFilePath;
         this.privateKey = privateKey;
@@ -17,8 +38,10 @@ class Nostr3IPFS {
         //const privateKey = generatePrivateKey();
         const publicKey = (0, nostr_tools_1.getPublicKey)(this.privateKey);
         const nsec = nostr_tools_1.nip19.nsecEncode(this.privateKey);
-        const npub = nostr_tools_1.nip19.npubEncode(this.privateKey);
-        return { pub: publicKey, sec: this.privateKey, npub: npub, nsec: nsec };
+        const npub = nostr_tools_1.nip19.npubEncode(publicKey);
+        const nprofile = nostr_tools_1.nip19.nprofileEncode({ pubkey: publicKey });
+        const wallet = new ethers_1.Wallet(this.privateKey);
+        return { pub: publicKey, sec: this.privateKey, npub: npub, nsec: nsec, nprofile: nprofile, wallet: wallet };
     }
     async encryptAndSaveData(nodeData) {
         let cid;
