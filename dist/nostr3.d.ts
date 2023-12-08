@@ -1,3 +1,4 @@
+import { ProfilePointer } from "nostr-tools/lib/types/nip19";
 export declare class Nostr3 {
     private privateKey;
     constructor(privateKey: any);
@@ -12,4 +13,11 @@ export declare class Nostr3 {
     decrypt: (encrypted: string, nonce: string) => Promise<any>;
     encryptDM: (data: string, publicKey: string) => Promise<string>;
     decryptDM: (encrypted: string, publicKey: string) => Promise<string>;
+    privateKeyFromX(username: string, caip10: string, sig: string, password: string | undefined): Promise<string>;
+    signInWithX(username: string, caip10: string, sig: string, password: string | undefined): Promise<{
+        petname: string;
+        profile: ProfilePointer | null;
+        pubkey: string;
+        privkey: string;
+    }>;
 }

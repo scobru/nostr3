@@ -30,21 +30,18 @@ exports.Nostr3 = void 0;
 const nostr_tools_1 = require("nostr-tools");
 const crypto_ipfs_1 = __importDefault(require("@scobru/crypto-ipfs"));
 const crypto_1 = __importDefault(require("crypto"));
-const secp = __importStar(require("@noble/secp256k1"));
+const ethers_1 = require("ethers");
+let secp;
+Promise.resolve().then(() => __importStar(require("@noble/secp256k1"))).then(secp256k1 => {
+    secp = secp256k1;
+})
+    .catch(error => {
+    // Handle error
+});
 class Nostr3 {
     constructor(privateKey) {
         this.encrypt = async (data) => {
             const nonce = await crypto_ipfs_1.default.crypto.asymmetric.generateNonce();
-            /* const encrypted = Buffer.concat([
-              Buffer.from(nonce),
-              Buffer.from(
-                MecenateHelper.crypto.asymmetric.secretBox.encryptMessage(
-                  Buffer.from(data),
-                  nonce,
-                  Buffer.from(this.privateKey).slice(0, 32),
-                ),
-              ),
-            ]); */
             const encrypted = crypto_ipfs_1.default.crypto.asymmetric.secretBox.encryptMessage(Buffer.from(data), nonce, Buffer.from(this.privateKey).slice(0, 32));
             return [encrypted, nonce];
         };
@@ -85,6 +82,43 @@ class Nostr3 {
         const npub = nostr_tools_1.nip19.npubEncode(publicKey);
         const nprofile = nostr_tools_1.nip19.nprofileEncode({ pubkey: publicKey });
         return { pub: publicKey, sec: this.privateKey, npub: npub, nsec: nsec, nprofile: nprofile };
+    }
+    async privateKeyFromX(username, caip10, sig, password) {
+        if (sig.length < 64)
+            throw new Error("Signature too short");
+        const inputKey = (0, ethers_1.sha256)(secp.hexToBytes(sig.toLowerCase().startsWith("0x") ? sig.slice(2) : sig));
+        const info = `${caip10}:${username}`;
+        const salt = (0, ethers_1.sha256)(`${info}:${password ? password : ""}:${sig.slice(-64)}`);
+        const hashKey = await secp.hkdf(ethers_1.sha256, inputKey, salt, info, 42);
+        return secp.bytesToHex(secp.hashToPrivateKey(hashKey));
+    }
+    async signInWithX(username, caip10, sig, password) {
+        let profile = null;
+        let petname = username;
+        if (username.includes(".")) {
+            try {
+                profile = await nostr_tools_1.nip05.queryProfile(username);
+            }
+            catch (e) {
+                console.log(e);
+                throw new Error("Nostr Profile Not Found");
+            }
+            if (profile == null) {
+                throw new Error("Nostr Profile Not Found");
+            }
+            petname = username.split("@").length == 2 ? username.split("@")[0] : username.split(".")[0];
+        }
+        const privkey = await this.privateKeyFromX(petname, caip10, sig, password);
+        const pubkey = (0, nostr_tools_1.getPublicKey)(privkey);
+        if ((profile === null || profile === void 0 ? void 0 : profile.pubkey) && pubkey !== profile.pubkey) {
+            throw new Error("Invalid Signature/Password");
+        }
+        return {
+            petname,
+            profile,
+            pubkey,
+            privkey,
+        };
     }
 }
 exports.Nostr3 = Nostr3;

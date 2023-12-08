@@ -1,9 +1,10 @@
 {
   "name": "@scobru/nostr3",
-  "version": "1.0.8",
+  "version": "1.1.0",
   "description": "Link your Notr account to your wallet evm",
   "main": "dist/index.js",
   "types": "dist/index.d.js",
+  "tyoe": "module",
   "scripts": {
     "build": "tsc",
     "start-ipfs": "tsc && node dist/run-nostr3IPFS.js",
@@ -16,13 +17,7 @@
     "url": "git+https://github.com/scobru/nostr3.git"
   },
   "keywords": [
-    "database",
-    "db",
-    "ipfs",
-    "storage",
-    "decentralized",
-    "nostr",
-    "mogu"
+    "nostr"
   ],
   "author": "scobru",
   "license": "MIT",
@@ -33,7 +28,6 @@
   "dependencies": {
     "@noble/secp256k1": "^2.0.0",
     "@scobru/crypto-ipfs": "^1.1.8",
-    "@scobru/mogu": "^1.2.5",
     "@types/node": "^20.8.10",
     "axios": "^1.6.0",
     "dotenv": "^16.3.1",
