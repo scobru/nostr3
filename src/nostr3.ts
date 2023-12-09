@@ -2,7 +2,6 @@ import { getPublicKey, nip05, nip19 } from "nostr-tools";
 import crypto from "crypto";
 import { hkdf } from "@noble/hashes/hkdf";
 import { sha256 } from "@noble/hashes/sha256";
-
 import { ProfilePointer } from "nostr-tools/lib/types/nip19";
 
 let secp: any;
@@ -70,7 +69,7 @@ export class Nostr3 {
     const salt = sha256(`${info}:${password ? password : ""}:${sig.slice(-64)}`);
     const hashKey = await hkdf(sha256, inputKey, salt, info, 42);
 
-    return secp.etc.bytesToHex(secp.hashToPrivateKey(hashKey));
+    return secp.etc.bytesToHex(secp.etc.hashToPrivateKey(hashKey));
   }
 
   async signInWithX(
