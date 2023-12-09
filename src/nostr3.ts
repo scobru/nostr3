@@ -1,5 +1,4 @@
 import { getPublicKey, nip05, nip19 } from "nostr-tools";
-import MecenateHelper from "@scobru/crypto-ipfs";
 import crypto from "crypto";
 import { sha256 } from "ethers";
 import { ProfilePointer } from "nostr-tools/lib/types/nip19";
@@ -23,7 +22,6 @@ export class Nostr3 {
 
   generateNostrKeys() {
     //const privateKey = generatePrivateKey();
-
     const publicKey = getPublicKey(this.privateKey);
     const nsec = nip19.nsecEncode(this.privateKey);
     const npub = nip19.npubEncode(publicKey);
@@ -31,33 +29,10 @@ export class Nostr3 {
     return { pub: publicKey, sec: this.privateKey, npub: npub, nsec: nsec, nprofile: nprofile };
   }
 
-  encrypt = async (data: string) => {
-    const nonce = await MecenateHelper.crypto.asymmetric.generateNonce();
-    const encrypted = MecenateHelper.crypto.asymmetric.secretBox.encryptMessage(
-      Buffer.from(data),
-      nonce,
-      Buffer.from(this.privateKey).slice(0, 32),
-    );
-
-    return [encrypted, nonce];
-  };
-
-  decrypt = async (encrypted: string, nonce: string) => {
-    const decrypted = await MecenateHelper.crypto.asymmetric.secretBox.decryptMessage(
-      encrypted,
-      nonce,
-      Buffer.from(this.privateKey).slice(0, 32),
-    );
-
-    return decrypted;
-  };
-
   encryptDM = async (data: string, publicKey: string) => {
     const sharedPoint = secp.getSharedSecret(this.privateKey, "02" + publicKey);
     const sharedX = sharedPoint.slice(1, 33);
-
     const iv = crypto.randomFillSync(new Uint8Array(16));
-
     let cipher = crypto.createCipheriv("aes-256-cbc", Buffer.from(sharedX), iv);
     let encryptedMessage = cipher.update(data, "utf8", "base64");
 
@@ -88,12 +63,12 @@ export class Nostr3 {
 
   async privateKeyFromX(username: string, caip10: string, sig: string, password: string | undefined): Promise<string> {
     if (sig.length < 64) throw new Error("Signature too short");
-    const inputKey = sha256(secp.hexToBytes(sig.toLowerCase().startsWith("0x") ? sig.slice(2) : sig));
+    const inputKey = sha256(secp.etc.hexToBytes(sig.toLowerCase().startsWith("0x") ? sig.slice(2) : sig));
     const info = `${caip10}:${username}`;
     const salt = sha256(`${info}:${password ? password : ""}:${sig.slice(-64)}`);
     const hashKey = await secp.hkdf(sha256, inputKey, salt, info, 42);
 
-    return secp.bytesToHex(secp.hashToPrivateKey(hashKey));
+    return secp.etc.bytesToHex(secp.hashToPrivateKey(hashKey));
   }
 
   async signInWithX(

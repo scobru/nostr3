@@ -9,8 +9,6 @@ export declare class Nostr3 {
         nsec: `nsec1${string}`;
         nprofile: `nprofile1${string}`;
     };
-    encrypt: (data: string) => Promise<any[]>;
-    decrypt: (encrypted: string, nonce: string) => Promise<any>;
     encryptDM: (data: string, publicKey: string) => Promise<string>;
     decryptDM: (encrypted: string, publicKey: string) => Promise<string>;
     privateKeyFromX(username: string, caip10: string, sig: string, password: string | undefined): Promise<string>;

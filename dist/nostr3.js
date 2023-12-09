@@ -28,7 +28,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Nostr3 = void 0;
 const nostr_tools_1 = require("nostr-tools");
-const crypto_ipfs_1 = __importDefault(require("@scobru/crypto-ipfs"));
 const crypto_1 = __importDefault(require("crypto"));
 const ethers_1 = require("ethers");
 let secp;
@@ -40,15 +39,6 @@ Promise.resolve().then(() => __importStar(require("@noble/secp256k1"))).then(sec
 });
 class Nostr3 {
     constructor(privateKey) {
-        this.encrypt = async (data) => {
-            const nonce = await crypto_ipfs_1.default.crypto.asymmetric.generateNonce();
-            const encrypted = crypto_ipfs_1.default.crypto.asymmetric.secretBox.encryptMessage(Buffer.from(data), nonce, Buffer.from(this.privateKey).slice(0, 32));
-            return [encrypted, nonce];
-        };
-        this.decrypt = async (encrypted, nonce) => {
-            const decrypted = await crypto_ipfs_1.default.crypto.asymmetric.secretBox.decryptMessage(encrypted, nonce, Buffer.from(this.privateKey).slice(0, 32));
-            return decrypted;
-        };
         this.encryptDM = async (data, publicKey) => {
             const sharedPoint = secp.getSharedSecret(this.privateKey, "02" + publicKey);
             const sharedX = sharedPoint.slice(1, 33);
@@ -86,11 +76,11 @@ class Nostr3 {
     async privateKeyFromX(username, caip10, sig, password) {
         if (sig.length < 64)
             throw new Error("Signature too short");
-        const inputKey = (0, ethers_1.sha256)(secp.hexToBytes(sig.toLowerCase().startsWith("0x") ? sig.slice(2) : sig));
+        const inputKey = (0, ethers_1.sha256)(secp.etc.hexToBytes(sig.toLowerCase().startsWith("0x") ? sig.slice(2) : sig));
         const info = `${caip10}:${username}`;
         const salt = (0, ethers_1.sha256)(`${info}:${password ? password : ""}:${sig.slice(-64)}`);
         const hashKey = await secp.hkdf(ethers_1.sha256, inputKey, salt, info, 42);
-        return secp.bytesToHex(secp.hashToPrivateKey(hashKey));
+        return secp.etc.bytesToHex(secp.hashToPrivateKey(hashKey));
     }
     async signInWithX(username, caip10, sig, password) {
         let profile = null;
