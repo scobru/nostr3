@@ -29,7 +29,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Nostr3 = void 0;
 const nostr_tools_1 = require("nostr-tools");
 const crypto_1 = __importDefault(require("crypto"));
-const ethers_1 = require("ethers");
+const hkdf_1 = require("@noble/hashes/hkdf");
+const sha256_1 = require("@noble/hashes/sha256");
 let secp;
 Promise.resolve().then(() => __importStar(require("@noble/secp256k1"))).then(secp256k1 => {
     secp = secp256k1;
@@ -76,10 +77,10 @@ class Nostr3 {
     async privateKeyFromX(username, caip10, sig, password) {
         if (sig.length < 64)
             throw new Error("Signature too short");
-        const inputKey = (0, ethers_1.sha256)(secp.etc.hexToBytes(sig.toLowerCase().startsWith("0x") ? sig.slice(2) : sig));
+        const inputKey = (0, sha256_1.sha256)(secp.etc.hexToBytes(sig.toLowerCase().startsWith("0x") ? sig.slice(2) : sig));
         const info = `${caip10}:${username}`;
-        const salt = (0, ethers_1.sha256)(`${info}:${password ? password : ""}:${sig.slice(-64)}`);
-        const hashKey = await secp.hkdf(ethers_1.sha256, inputKey, salt, info, 42);
+        const salt = (0, sha256_1.sha256)(`${info}:${password ? password : ""}:${sig.slice(-64)}`);
+        const hashKey = await (0, hkdf_1.hkdf)(sha256_1.sha256, inputKey, salt, info, 42);
         return secp.etc.bytesToHex(secp.hashToPrivateKey(hashKey));
     }
     async signInWithX(username, caip10, sig, password) {
